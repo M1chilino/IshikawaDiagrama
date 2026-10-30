@@ -1,0 +1,371 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Ishikawa na Prática</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: ficha de inspeção de chão de fábrica — uma coluna estreita, cartões só nos itens de resposta */
+:root{
+  --paper:#eef1ef; --surface:#f9fbfa; --ink:#17242b; --muted:#56666b; --line:#c8d1cf;
+  --accent:#d9480f; --accent-ink:#ffffff; --accent-soft:#fde3d4;
+  --ok:#2b7a3b; --ok-bg:#dcf1e0; --bad:#b42323; --bad-bg:#f8dede;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#11181b; --surface:#192226; --ink:#e3eae8; --muted:#94a4a7; --line:#2d3a3f;
+  --accent:#ff7a33; --accent-ink:#1a0d05; --accent-soft:#3b2216;
+  --ok:#5cc876; --ok-bg:#15301d; --bad:#ff7070; --bad-bg:#3a1818; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#11181b; --surface:#192226; --ink:#e3eae8; --muted:#94a4a7; --line:#2d3a3f;
+  --accent:#ff7a33; --accent-ink:#1a0d05; --accent-soft:#3b2216;
+  --ok:#5cc876; --ok-bg:#15301d; --bad:#ff7070; --bad-bg:#3a1818; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.1;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:2.4rem}
+h2{font-size:1.8rem}
+h3{font-size:1.25rem;font-weight:600}
+p{margin:0}
+.tag{font:500 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:0;border-radius:6px;background:var(--accent);color:var(--accent-ink);font:600 1rem var(--body);padding:12px 18px;min-height:46px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* header */
+.top{display:flex;flex-direction:column;gap:8px;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.top .stamp{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input{font:inherit;padding:12px;border:1.5px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+
+/* activity list */
+.acts{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:16px 4px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%}
+.act .n{font:700 1.6rem/1 var(--display);color:var(--accent);width:1.6ch}
+.act .t{min-width:0;display:flex;flex-direction:column;gap:2px}
+.act .t b{font:600 1.2rem/1.2 var(--display)}
+.act .t span{font-size:.9rem;color:var(--muted)}
+.pill{font:500 .78rem/1 var(--mono);padding:6px 8px;border-radius:99px;border:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill.done{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+
+/* activity screens */
+.back{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:600;align-self:flex-start}
+.case{background:var(--surface);border-left:4px solid var(--accent);padding:14px 16px;border-radius:0 6px 6px 0;display:flex;flex-direction:column;gap:8px}
+.items{display:flex;flex-direction:column;gap:14px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.item .q{font-weight:600}
+.item .q small{display:block;font:500 .72rem var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.opts{display:grid;grid-template-columns:1fr;gap:8px}
+.opts.chips{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.opt{text-align:left;padding:11px 12px;border:1.5px solid var(--line);border-radius:6px;background:var(--paper);min-height:44px}
+.opts.chips .opt{text-align:center;font-weight:600;font-size:.95rem}
+.opt:not(:disabled):hover{border-color:var(--accent)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{font-size:.93rem;padding:10px 12px;border-radius:6px}
+.fb.ok{background:var(--ok-bg)}
+.fb.no{background:var(--bad-bg)}
+.fb b{display:block}
+.fb.ok b{color:var(--ok)} .fb.no b{color:var(--bad)}
+
+/* fishbone */
+.bone{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.bone svg{width:100%;height:auto;display:block}
+.bone .cap{display:flex;justify-content:space-between;gap:8px;padding:2px 4px 6px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+
+/* diagram list for activity 3 */
+.cat{font:600 1.05rem var(--display);color:var(--accent);letter-spacing:.03em;text-transform:uppercase;margin-top:6px}
+
+/* 5 porquês */
+.chain{display:flex;flex-direction:column;gap:8px;counter-reset:w}
+.slot{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;padding:12px;border:1.5px dashed var(--line);border-radius:8px;min-height:52px;background:var(--surface);text-align:left;width:100%}
+.slot.filled{border-style:solid}
+.slot .k{font:700 1.1rem/1.3 var(--display);color:var(--accent);white-space:nowrap}
+.slot.right{border-color:var(--ok);background:var(--ok-bg)}
+.slot.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.pool{display:flex;flex-direction:column;gap:8px}
+
+/* result */
+.score{display:flex;align-items:baseline;gap:8px;font-family:var(--display);font-variant-numeric:tabular-nums}
+.score .big{font-size:4.2rem;font-weight:700;line-height:1;color:var(--accent)}
+.score .of{font-size:1.6rem;color:var(--muted)}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.lines{display:flex;flex-direction:column}
+.lines div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.lines div:last-child{border:0}
+.danger{color:var(--bad);border-color:var(--bad)}
+@media (prefers-reduced-motion:no-preference){.fb{animation:in .2s ease-out}@keyframes in{from{opacity:.4;transform:translateY(-3px)}to{opacity:1;transform:none}}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const CATS=["Método","Máquina","Mão de obra","Material","Medição","Meio ambiente"];
+
+const A1=[
+ {q:"Qual é o outro nome mais comum do Diagrama de Ishikawa?",o:["Gráfico de Pareto","Diagrama de espinha de peixe","Fluxograma","Histograma"],c:1,e:"Pelo formato: o problema fica na cabeça e as causas se espalham como espinhas. Também é chamado de diagrama de causa e efeito."},
+ {q:"O que vai na \"cabeça do peixe\"?",o:["A causa raiz","A lista de soluções","O efeito, ou seja, o problema analisado","O responsável pela análise"],c:2,e:"A cabeça recebe o efeito (o problema). As espinhas recebem as possíveis causas."},
+ {q:"Qual é a principal finalidade da ferramenta?",o:["Medir a frequência dos defeitos","Identificar e organizar as possíveis causas de um problema","Definir prazos de um plano de ação","Controlar estatisticamente o processo"],c:1,e:"Ela organiza o levantamento de causas por categoria. Frequência é com Pareto, prazos com 5W2H, controle com CEP."},
+ {q:"\"Operador novo, sem treinamento na máquina\" entra em qual categoria?",o:["Método","Máquina","Mão de obra","Meio ambiente"],c:2,e:"Tudo que depende das pessoas (treinamento, atenção, quantidade de gente) vai em Mão de obra."},
+ {q:"\"Paquímetro sem calibração\" entra em qual categoria?",o:["Medição","Máquina","Material","Método"],c:0,e:"Instrumentos, critérios de inspeção e indicadores pertencem à Medição."},
+ {q:"Qual destes NÃO faz parte dos 6M?",o:["Meio ambiente","Material","Marketing","Método"],c:2,e:"Os 6M são Método, Máquina, Mão de obra, Material, Medição e Meio ambiente. Marketing aparece em versões para serviços (8P), não nos 6M."},
+ {q:"Depois de levantar as causas, qual técnica ajuda a aprofundar uma delas até a causa raiz?",o:["5 Porquês","Brainstorming","Folha de verificação","Benchmarking"],c:0,e:"Os 5 Porquês fazem perguntas sucessivas sobre uma causa até chegar à origem do problema."},
+ {q:"Quem criou o diagrama?",o:["W. Edwards Deming","Kaoru Ishikawa","Taiichi Ohno","Joseph Juran"],c:1,e:"Kaoru Ishikawa, engenheiro japonês, popularizou o diagrama nos anos 1960 nos círculos de controle da qualidade."}
+];
+
+const A2={
+ caso:"A Injetora Vale fabrica tampas plásticas. No último mês, 9% das tampas saíram com rebarba e bolhas. A equipe de qualidade visitou a linha e anotou o que encontrou. Classifique cada achado em uma das 6M.",
+ efeito:["Tampas com","rebarba e bolhas"],
+ itens:[
+  {t:"A resina chegou com umidade acima do especificado.",c:3,e:"É uma característica da matéria-prima: Material."},
+  {t:"O molde tem desgaste na linha de fechamento.",c:1,e:"Desgaste do ferramental é condição do equipamento: Máquina."},
+  {t:"O operador do turno da noite não recebeu treinamento para o produto novo.",c:2,e:"Falta de treinamento é Mão de obra."},
+  {t:"A instrução de trabalho está desatualizada e não traz a temperatura correta.",c:0,e:"Procedimento, instrução e parâmetro padrão são Método."},
+  {t:"O termopar do molde mostra uma temperatura diferente da real.",c:4,e:"O termopar é um instrumento que mede: o erro está na Medição."},
+  {t:"No verão, o galpão fica muito quente e úmido.",c:5,e:"Temperatura e umidade do local são Meio ambiente."},
+  {t:"O fornecedor de resina foi trocado sem passar por homologação.",c:3,e:"A origem e a qualidade do insumo são Material."},
+  {t:"A pressão de injeção é ajustada \"no olho\", sem registro.",c:0,e:"Ajustar sem padrão é falha na forma de trabalhar: Método."},
+  {t:"A manutenção preventiva da injetora está atrasada há 3 meses.",c:1,e:"Estado de conservação do equipamento: Máquina."},
+  {t:"O calibrador usado na inspeção final está com a validade vencida.",c:4,e:"Instrumento de inspeção sem calibração: Medição."}
+ ]};
+
+const A3={
+ caso:"Um estagiário montou este diagrama para o problema \"Atraso na entrega de pedidos\" do centro de distribuição. Alguns itens estão errados: ou estão na categoria errada, ou nem são causas. Avalie cada um.",
+ itens:[
+  {cat:"Máquina",t:"Empilhadeira quebra com frequência.",ok:true,e:"Correto. Falha de equipamento é Máquina."},
+  {cat:"Método",t:"Roteiro de separação de pedidos não é padronizado.",ok:true,e:"Correto. Falta de padrão no processo é Método."},
+  {cat:"Mão de obra",t:"Não existe sistema de gestão de estoque (WMS).",ok:false,e:"Erro de categoria. Sistema é recurso tecnológico, então vai em Máquina, não em Mão de obra."},
+  {cat:"Material",t:"Clientes reclamando do atraso.",ok:false,e:"Isso é consequência do problema, não causa. Não deve estar no diagrama."},
+  {cat:"Medição",t:"Cada setor calcula o prazo de entrega de um jeito.",ok:true,e:"Correto. Indicador sem critério único é Medição."},
+  {cat:"Meio ambiente",t:"Chuvas fortes alagam a doca de carregamento.",ok:true,e:"Correto. Condição do local e do clima é Meio ambiente."},
+  {cat:"Mão de obra",t:"Equipe reduzida por férias, sem substituição.",ok:true,e:"Correto. Quantidade de pessoas é Mão de obra."},
+  {cat:"Método",t:"Atraso na entrega de pedidos.",ok:false,e:"Esse é o próprio efeito, que fica na cabeça do peixe. Não pode aparecer como causa."}
+ ]};
+
+const A4={
+ caso:"Problema: a fresadora CNC parou no meio da produção. Coloque as respostas na ordem certa dos 5 Porquês, começando pela mais próxima do problema e terminando na causa raiz.",
+ certo:[
+  "O motor sobrecarregou e o disjuntor desarmou.",
+  "O rolamento do eixo estava travando por falta de lubrificação.",
+  "A bomba de lubrificação não estava enviando óleo.",
+  "O filtro de sucção da bomba estava entupido de cavaco.",
+  "O plano de manutenção preventiva não inclui a limpeza desse filtro."
+ ],
+ pool:[3,0,4,2,1],
+ e:"A cadeia termina numa causa sobre a qual a empresa pode agir de forma permanente: incluir a limpeza do filtro no plano de manutenção. Trocar só o disjuntor ou o rolamento faria o problema voltar."
+};
+
+const TOT={a1:A1.length,a2:A2.itens.length,a3:A3.itens.length,a4:5};
+const KEY="ishikawa-pratica-v1";
+let S=load();
+let view="home", confirmReset=false, confirmRedo=null;
+
+function blank(){return{nome:"",a1:{},a2:{},a3:{},a4:{seq:[],checked:false}}}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));if(v&&v.a4)return v}catch(e){}return blank()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function pts(k){
+  if(k==="a1")return Object.entries(S.a1).filter(([i,v])=>A1[i].c===v).length;
+  if(k==="a2")return Object.entries(S.a2).filter(([i,v])=>A2.itens[i].c===v).length;
+  if(k==="a3")return Object.entries(S.a3).filter(([i,v])=>A3.itens[i].ok===v).length;
+  if(k==="a4")return S.a4.checked?S.a4.seq.filter((v,i)=>v===i).length:0;
+}
+function answered(k){
+  if(k==="a4")return S.a4.checked?5:0;
+  return Object.keys(S[k]).length;
+}
+
+const ACTS=[
+ ["a1","Conceitos e os 6M","8 perguntas de múltipla escolha"],
+ ["a2","Monte a espinha","Estudo de caso: tampas com rebarba"],
+ ["a3","Encontre o erro","Revise o diagrama do estagiário"],
+ ["a4","5 Porquês","Chegue à causa raiz da parada"]
+];
+
+function render(){
+  const app=document.getElementById("app");
+  app.innerHTML=({home,a1,a2,a3,a4,res})[view]();
+  window.scrollTo(0,0);
+}
+
+function home(){
+  const total=Object.keys(TOT).reduce((s,k)=>s+pts(k),0);
+  const all=Object.values(TOT).reduce((a,b)=>a+b,0);
+  return `
+  <header class="top">
+    <div class="stamp"><span class="tag">Gestão da Qualidade</span><span class="tag">Ferramenta 01</span></div>
+    <h1>Ishikawa na Prática</h1>
+    <p class="muted">Quatro atividades sobre o diagrama de causa e efeito. Cada resposta é corrigida na hora e seu progresso fica salvo neste aparelho.</p>
+  </header>
+  <div class="field">
+    <label class="tag" for="nome">Seu nome</label>
+    <input id="nome" autocomplete="name" placeholder="Digite seu nome completo" value="${esc(S.nome)}">
+  </div>
+  <nav class="acts">
+    ${ACTS.map(([k,t,d],i)=>{const a=answered(k),T=TOT[k],done=a===T;
+      return `<button class="act" data-go="${k}"><span class="n">${i+1}</span><span class="t"><b>${t}</b><span>${d}</span></span>
+      <span class="pill ${done?"done":""}">${done?pts(k)+"/"+T+" pts":a+"/"+T}</span></button>`}).join("")}
+  </nav>
+  <div class="row">
+    <button class="btn" data-go="res">Ver meu resultado · ${total}/${all}</button>
+  </div>`;
+}
+
+function back(){return `<button class="back" data-go="home">← Voltar às atividades</button>`}
+function head(n,t){return `<div><span class="tag">Atividade ${n} de 4</span><h2>${t}</h2></div>`}
+function fb(ok,e){return `<div class="fb ${ok?"ok":"no"}"><b>${ok?"Correto.":"Não é essa."}</b>${esc(e)}</div>`}
+function redoBtn(k){
+  const c=confirmRedo===k;
+  return `<button class="btn ghost ${c?"danger":""}" data-redo="${k}">${c?"Toque de novo para apagar as respostas":"Refazer esta atividade"}</button>`;
+}
+function nextBtn(k,n){
+  const done=answered(k)===TOT[k];
+  if(!done){
+    if(k!=="a4"&&answered(k)>0)return `<div class="row">${redoBtn(k)}</div>`;
+    return "";
+  }
+  return `<div class="sheet"><span class="tag">Atividade concluída</span><p><b>${pts(k)} de ${TOT[k]}</b> acertos.</p>
+  <div class="row"><button class="btn" data-go="${n}">${n==="res"?"Ver resultado final":"Próxima atividade"}</button>${redoBtn(k)}</div></div>`;
+}
+
+function a1(){
+  return `${back()}${head(1,"Conceitos e os 6M")}
+  <div class="items">${A1.map((it,i)=>{const a=S.a1[i];const has=a!==undefined;
+   return `<div class="item"><p class="q"><small>Questão ${i+1}</small>${esc(it.q)}</p>
+   <div class="opts">${it.o.map((o,j)=>{let cl="";if(has){if(j===it.c)cl="right";else if(j===a)cl="wrong"}
+     return `<button class="opt ${cl}" data-a1="${i}:${j}" ${has?"disabled":""}>${esc(o)}</button>`}).join("")}</div>
+   ${has?fb(a===it.c,it.e):""}</div>`}).join("")}</div>${nextBtn("a1","a2")}`;
+}
+
+function fishbone(){
+  const cnt=CATS.map((_,ci)=>A2.itens.filter((it,i)=>S.a2[i]===ci&&it.c===ci).length);
+  const tot=CATS.map((_,ci)=>A2.itens.filter(it=>it.c===ci).length);
+  const xs=[95,175,255];
+  let bones="";
+  CATS.forEach((c,ci)=>{
+    const top=ci<3,x=xs[ci%3],y1=top?34:186;
+    const full=cnt[ci]===tot[ci];
+    bones+=`<line x1="${x-46}" y1="${y1}" x2="${x}" y2="110" stroke="var(--ink)" stroke-width="2"/>`;
+    const ly=top?22:204;
+    bones+=`<text x="${x-46}" y="${ly}" text-anchor="middle" font-family="var(--display)" font-weight="600" font-size="13" fill="${full?"var(--ok)":"var(--ink)"}">${c}</text>`;
+    // dots for found causes along the bone
+    for(let k=0;k<tot[ci];k++){
+      const t=0.35+k*0.3,px=x-46+46*t,py=y1+(110-y1)*t;
+      bones+=`<circle cx="${px}" cy="${py}" r="5" fill="${k<cnt[ci]?"var(--accent)":"var(--surface)"}" stroke="var(--accent)" stroke-width="1.5"/>`;
+    }
+  });
+  const found=cnt.reduce((a,b)=>a+b,0);
+  return `<div class="bone"><div class="cap"><span class="tag">Seu diagrama</span><span class="tag">${found}/10 causas no lugar</span></div>
+  <svg viewBox="0 0 380 216" role="img" aria-label="Diagrama de espinha de peixe com ${found} de 10 causas posicionadas">
+    <line x1="18" y1="110" x2="292" y2="110" stroke="var(--ink)" stroke-width="3"/>
+    <polygon points="292,110 282,104 282,116" fill="var(--ink)"/>
+    <rect x="296" y="82" width="80" height="56" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="336" y="106" text-anchor="middle" font-family="var(--display)" font-weight="700" font-size="13" fill="var(--ink)">${A2.efeito[0]}</text>
+    <text x="336" y="122" text-anchor="middle" font-family="var(--display)" font-weight="700" font-size="13" fill="var(--ink)">${A2.efeito[1]}</text>
+    ${bones}
+  </svg></div>`;
+}
+
+function a2(){
+  return `${back()}${head(2,"Monte a espinha")}
+  <div class="case"><span class="tag">Estudo de caso</span><p>${esc(A2.caso)}</p></div>
+  ${fishbone()}
+  <div class="items">${A2.itens.map((it,i)=>{const a=S.a2[i];const has=a!==undefined;
+   return `<div class="item"><p class="q"><small>Achado ${i+1}</small>${esc(it.t)}</p>
+   <div class="opts chips">${CATS.map((c,j)=>{let cl="";if(has){if(j===it.c)cl="right";else if(j===a)cl="wrong"}
+     return `<button class="opt ${cl}" data-a2="${i}:${j}" ${has?"disabled":""}>${c}</button>`}).join("")}</div>
+   ${has?fb(a===it.c,it.e):""}</div>`}).join("")}</div>${nextBtn("a2","a3")}`;
+}
+
+function a3(){
+  let last="";
+  return `${back()}${head(3,"Encontre o erro")}
+  <div class="case"><span class="tag">Situação</span><p>${esc(A3.caso)}</p></div>
+  <div class="items">${A3.itens.map((it,i)=>{const a=S.a3[i];const has=a!==undefined;
+   const catHead=it.cat!==last?`<span class="cat">${it.cat}</span>`:"";last=it.cat;
+   const opt=(v,l)=>{let cl="";if(has){if(v===it.ok)cl="right";else if(v===a)cl="wrong"}
+     return `<button class="opt ${cl}" data-a3="${i}:${v?1:0}" ${has?"disabled":""}>${l}</button>`};
+   return `<div class="item"><p class="q"><small>Espinha: ${it.cat}</small>${esc(it.t)}</p>
+   <div class="opts chips">${opt(true,"Está certo")}${opt(false,"Tem erro")}</div>
+   ${has?fb(a===it.ok,it.e):""}</div>`}).join("")}</div>${nextBtn("a3","a4")}`;
+}
+
+function a4(){
+  const seq=S.a4.seq,chk=S.a4.checked;
+  const slots=[0,1,2,3,4].map(i=>{
+    const v=seq[i];const f=v!==undefined;
+    let cl=f?"filled":"";if(chk)cl+=v===i?" right":" wrong";
+    return `<button class="slot ${cl}" data-rm="${i}" ${chk||!f?"disabled":""} aria-label="Porquê ${i+1}">
+      <span class="k">${i+1}º porquê</span><span>${f?esc(A4.certo[v]):'<span class="muted">Toque numa resposta abaixo</span>'}</span></button>`}).join("");
+  const pool=A4.pool.filter(p=>!seq.includes(p)).map(p=>`<button class="opt" data-add="${p}">${esc(A4.certo[p])}</button>`).join("");
+  let after="";
+  if(chk){
+    const p=pts("a4");
+    after=`<div class="fb ${p===5?"ok":"no"}"><b>${p===5?"Sequência perfeita.":p+" de 5 na posição certa."}</b>${esc(A4.e)}</div>
+    ${p<5?`<div class="sheet"><span class="tag">Ordem correta</span><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">${A4.certo.map(t=>`<li>${esc(t)}</li>`).join("")}</ol></div>`:""}
+    ${nextBtn("a4","res")}`;
+  }
+  return `${back()}${head(4,"5 Porquês")}
+  <div class="case"><span class="tag">Problema</span><p>${esc(A4.caso)}</p></div>
+  <div class="chain">${slots}</div>
+  ${chk?"":`<p class="muted" style="font-size:.9rem">Toque numa resposta para colocá-la no próximo espaço. Toque num espaço preenchido para devolver a resposta.</p>
+  ${pool?`<div class="pool">${pool}</div>`:""}
+  <div class="row"><button class="btn" data-check ${seq.length<5?"disabled":""}>Conferir sequência</button></div>`}
+  ${after}`;
+}
+
+function res(){
+  const all=Object.values(TOT).reduce((a,b)=>a+b,0);
+  const total=Object.keys(TOT).reduce((s,k)=>s+pts(k),0);
+  const pend=Object.keys(TOT).filter(k=>answered(k)<TOT[k]).length;
+  const nota=(total/all*10).toFixed(1).replace(".",",");
+  const d=new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
+  return `${back()}
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between"><span class="tag">Ficha de resultado</span><span class="tag">${d}</span></div>
+    <div><h2>${esc(S.nome)||'<span class="muted">Sem nome</span>'}</h2><p class="muted">Ishikawa na Prática</p></div>
+    <div class="score"><span class="big">${nota}</span><span class="of">/ 10</span></div>
+    <p>${total} acertos de ${all} itens.</p>
+    <div class="lines">${ACTS.map(([k,t])=>`<div><button class="back" style="padding:0;color:var(--ink);text-align:left" data-go="${k}">${t} ›</button><b>${answered(k)<TOT[k]?'<span class="muted">incompleta</span>':pts(k)+"/"+TOT[k]}</b></div>`).join("")}</div>
+  </div>
+  ${pend?`<p class="muted">Ainda faltam ${pend} atividade${pend>1?"s":""}. Volte e termine antes de enviar seu resultado.</p>`:`<p class="muted">Tire um print desta ficha e envie ao professor. Para tentar melhorar a nota, toque no nome de uma atividade e use "Refazer esta atividade".</p>`}
+  <div class="row">
+    <button class="btn ghost ${confirmReset?"danger":""}" data-reset>${confirmReset?"Toque de novo para apagar tudo":"Recomeçar tudo"}</button>
+  </div>`;
+}
+
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest("button");if(!b)return;
+  const y=window.scrollY;let keep=true;
+  if(b.dataset.go){view=b.dataset.go;confirmReset=false;confirmRedo=null;render();return}
+  if(b.dataset.redo){const k=b.dataset.redo;if(confirmRedo!==k){confirmRedo=k}else{S[k]=k==="a4"?{seq:[],checked:false}:{};confirmRedo=null;save();render();return}}
+  else if(b.dataset.a1){const[i,j]=b.dataset.a1.split(":").map(Number);if(S.a1[i]===undefined)S.a1[i]=j}
+  else if(b.dataset.a2){const[i,j]=b.dataset.a2.split(":").map(Number);if(S.a2[i]===undefined)S.a2[i]=j}
+  else if(b.dataset.a3){const[i,j]=b.dataset.a3.split(":").map(Number);if(S.a3[i]===undefined)S.a3[i]=!!j}
+  else if(b.dataset.add!==undefined){const p=+b.dataset.add;if(!S.a4.checked&&S.a4.seq.length<5&&!S.a4.seq.includes(p))S.a4.seq.push(p)}
+  else if(b.dataset.rm!==undefined){if(!S.a4.checked)S.a4.seq.splice(+b.dataset.rm,1)}
+  else if(b.hasAttribute("data-check")){if(S.a4.seq.length===5)S.a4.checked=true}
+  else if(b.hasAttribute("data-reset")){
+    if(!confirmReset){confirmReset=true}else{const n=S.nome;S=blank();S.nome=n;confirmReset=false;view="home";save();render();return}
+  } else return;
+  if(!b.dataset.redo)confirmRedo=null;
+  save();
+  document.getElementById("app").innerHTML=({home,a1,a2,a3,a4,res})[view]();
+  if(keep)window.scrollTo(0,y);
+});
+document.addEventListener("input",ev=>{if(ev.target.id==="nome"){S.nome=ev.target.value;save()}});
+
+render();
+</script>
+
+</body></html>
